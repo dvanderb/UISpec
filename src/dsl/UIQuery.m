@@ -503,6 +503,29 @@ UIQuery * $(NSMutableString *script, ...) {
 	NSArray *stringParams = [script componentsSeparatedByString:@"'"];
 	//NSLog(@"stringParams = %@", stringParams);
 	if (stringParams.count > 1) {
+		// Added 6/16/2011 by davidv@groupon.com
+		// this deals with the case where you have a "'" within a string
+        // this only works for requests where the last command has a single quoted string
+        // it assumes that every parameter after the first single quote is part of the same parameter
+		NSArray *newStringParams = [NSMutableArray array];
+		[newStringParams addObject:[stringParams objectAtIndex:0]];
+
+		if (stringParams.count > 3)
+		{
+			NSMutableString *newString = [NSMutableString stringWithString:[stringParams objectAtIndex:1]];
+
+			for (int x=2; x < stringParams.count - 1; x++)
+			{
+				[newString appendString:@"'"];
+				[newString appendString:[stringParams objectAtIndex:x]];
+			}
+
+			[newStringParams addObject:newString];
+			[newStringParams addObject:@""];
+
+			stringParams = newStringParams;
+		}
+		
 		for (int i=1; i<stringParams.count; i=i+2) {
 			[strings addObject:[stringParams objectAtIndex:i]];
 			[script replaceOccurrencesOfString:[NSString stringWithFormat:@"'%@'", [stringParams objectAtIndex:i]] withString:@"BIGFATGUYWITHPIGFEET" options:NSLiteralSearch range:NSMakeRange(0, [script length])];
